@@ -1,0 +1,47 @@
+{
+  "id": "84b6b878",
+  "name": "Qwen35-Thinking-Default-4k",
+  "created": "2026-03-11T22:22:14.641087",
+  "state": {
+    "connection": {
+      "ollama_host": "http://localhost:11434",
+      "model": "jaahas/qwen3.5-uncensored:4b",
+      "system_prompt": "",
+      "keep_alive": "5m"
+    },
+    "toggles": {
+      "think_enabled": true,
+      "think_visible": true,
+      "show_stats": false
+    },
+    "param_overrides": {
+      "frequency_penalty": 0.0,
+      "low_vram": false,
+      "main_gpu": 0,
+      "min_p": 0.0,
+      "mirostat": 0,
+      "mirostat_eta": 0.1,
+      "mirostat_tau": 5.0,
+      "num_batch": 512,
+      "num_ctx": 4096,
+      "num_gpu": -1,
+      "num_keep": -1,
+      "num_predict": -1,
+      "num_thread": 0,
+      "numa": false,
+      "penalize_newline": true,
+      "presence_penalty": 1.5,
+      "repeat_last_n": 64,
+      "repeat_penalty": 1.0,
+      "seed": 0,
+      "stop": [],
+      "temperature": 1.0,
+      "tfs_z": 1.0,
+      "top_k": 20,
+      "top_p": 0.95,
+      "typical_p": 1.0,
+      "use_mlock": false,
+      "use_mmap": true
+    }
+  }
+}

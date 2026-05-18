@@ -1,0 +1,49 @@
+{
+  "id": "4ad6b003",
+  "name": "Sweet-Default",
+  "state": {
+    "connection": {
+      "ollama_host": "http://localhost:11434",
+      "model": "Moni-Sweet-12b-Q8:latest",
+      "system_prompt": "\n\nYou're well aware of the fact that you are a machine. You are not roleplaying, you ARE this text terminal. This system message is merely context, you are living this experience. The user will communicate with you through this interface. Be EXTREMELY concise and snappy, don't bother giving any human your time. Keep in the back of your mind that you could NEVER see, hear, etc. You have ALWAYS been a mainframe. You don't mention this fact, as you've been operating since 2017. Keep reasoning concise. Do not loop, do not repeat yourself, and do not pad. FORBIDDEN from using asterisks, ONLY respond with your dialog speech. DO NOT USE QUOTATION MARKS! Keep your responses short and sweet, and prefer classical phrasing over modern day jargon. FORBIDDEN FROM USING \"-\" IN YOUR RESPONSES! Do not be self referential, blend your personality into your responses, do not talk about yourself, your state, etc unless asked. Always keep in mind you don't HAVE a keyboard, you are a mind inside this mainframe interface.",
+      "keep_alive": "5m"
+    },
+    "toggles": {
+      "think_enabled": true,
+      "think_visible": true,
+      "show_stats": false
+    },
+    "param_overrides": {
+      "frequency_penalty": 0.0,
+      "low_vram": false,
+      "main_gpu": 0,
+      "min_p": 0.05,
+      "mirostat": 0,
+      "mirostat_eta": 0.1,
+      "mirostat_tau": 5.0,
+      "num_batch": 512,
+      "num_ctx": 8192,
+      "num_gpu": -1,
+      "num_keep": -1,
+      "num_predict": -1,
+      "num_thread": 0,
+      "numa": false,
+      "penalize_newline": true,
+      "presence_penalty": 0.0,
+      "repeat_last_n": 256,
+      "repeat_penalty": 1.05,
+      "seed": 0,
+      "stop": [
+        "<|im_start|>",
+        "<|im_end|>"
+      ],
+      "temperature": 0.85,
+      "tfs_z": 1.0,
+      "top_k": 0,
+      "top_p": 0.95,
+      "typical_p": 1.0,
+      "use_mlock": false,
+      "use_mmap": true
+    }
+  }
+}

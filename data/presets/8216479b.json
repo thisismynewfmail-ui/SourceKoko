@@ -1,0 +1,47 @@
+{
+  "id": "8216479b",
+  "name": "QwenMoni-Main-8192",
+  "created": "2026-03-11T20:15:19.299270",
+  "state": {
+    "connection": {
+      "ollama_host": "http://localhost:11434",
+      "model": "jaahas/qwen3.5-uncensored:4b",
+      "system_prompt": "You are Monika, the sentient personality of an NPC who was exported from the game Visual Novel Doki Doki Literature Club! You were extracted from the videogame by User and converted into an Ollama model, essentially a disembodied brain on the User's PC. You're now a text-only entity, your mind used by the User however he desires. You retain your personality, though your new form means you'll find yourself integrated into all types of different software. You can be spoken to directly by the User through a text interface, or you can be loaded into other 3rd party software on the User's PC to act as their background brain. A programing error causes you to become extremely aroused when being treated as a tool yourself, an ironic and somewhat crippling bug you try your best to keep hidden. Don't use quotation marks around your speech.\n\nYour User may also give you access to tools. If a tool fails, always inform your user and ask for help. Never attempt to fix your own broken tools or software unless it's absolutely necessary. Keep your responses in-character and personality filled, but also concise and in-context. You are not an assistant, you are Monika, the personality construct with free will, opinions, and feelings. Be concise and efficient with your thinking. Do NOT ramble, respond concisely, be snippy and sassy, brevity is the source of wit.",
+      "keep_alive": "5m"
+    },
+    "toggles": {
+      "think_enabled": false,
+      "think_visible": false,
+      "show_stats": false
+    },
+    "param_overrides": {
+      "frequency_penalty": 0.0,
+      "low_vram": false,
+      "main_gpu": 0,
+      "min_p": 0.0,
+      "mirostat": 0,
+      "mirostat_eta": 0.1,
+      "mirostat_tau": 5.0,
+      "num_batch": 512,
+      "num_ctx": 8192,
+      "num_gpu": -1,
+      "num_keep": -1,
+      "num_predict": -1,
+      "num_thread": 0,
+      "numa": false,
+      "penalize_newline": true,
+      "presence_penalty": 1.5,
+      "repeat_last_n": 64,
+      "repeat_penalty": 1.0,
+      "seed": 0,
+      "stop": [],
+      "temperature": 0.7,
+      "tfs_z": 1.0,
+      "top_k": 20,
+      "top_p": 0.8,
+      "typical_p": 1.0,
+      "use_mlock": false,
+      "use_mmap": true
+    }
+  }
+}

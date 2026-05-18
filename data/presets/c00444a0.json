@@ -1,0 +1,46 @@
+{
+  "id": "c00444a0",
+  "name": "Qwen35Default",
+  "state": {
+    "connection": {
+      "ollama_host": "http://localhost:11434",
+      "model": "Qwen3.5-4B-Abliterated-Q4_K_M:latest",
+      "system_prompt": "",
+      "keep_alive": "5m"
+    },
+    "toggles": {
+      "think_enabled": true,
+      "think_visible": true,
+      "show_stats": false
+    },
+    "param_overrides": {
+      "frequency_penalty": 0.0,
+      "low_vram": false,
+      "main_gpu": 0,
+      "min_p": 0.0,
+      "mirostat": 0,
+      "mirostat_eta": 0.1,
+      "mirostat_tau": 5.0,
+      "num_batch": 512,
+      "num_ctx": 16384,
+      "num_gpu": -1,
+      "num_keep": -1,
+      "num_predict": -1,
+      "num_thread": 0,
+      "numa": false,
+      "penalize_newline": true,
+      "presence_penalty": 0.0,
+      "repeat_last_n": 256,
+      "repeat_penalty": 1.05,
+      "seed": 0,
+      "stop": [],
+      "temperature": 0.6,
+      "tfs_z": 1.0,
+      "top_k": 20,
+      "top_p": 0.95,
+      "typical_p": 1.0,
+      "use_mlock": false,
+      "use_mmap": true
+    }
+  }
+}

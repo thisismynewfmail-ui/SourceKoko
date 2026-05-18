@@ -1,0 +1,16 @@
+{
+  "whisper_model": "base",
+  "whisper_model_path": "",
+  "whisper_device": "auto",
+  "whisper_compute": "auto",
+  "language": "",
+  "beam_size": 5,
+  "wake_word": "hey autotype",
+  "wake_timeout": 30,
+  "auto_unload_minutes": 0,
+  "auto_send": true,
+  "tts_voice": "",
+  "tts_rate": 174,
+  "tts_volume": 100,
+  "tts_auto_speak": true
+}

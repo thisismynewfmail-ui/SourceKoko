@@ -1,0 +1,10 @@
+{
+  "enable_saving": true,
+  "enable_injection": false,
+  "dumb_mode": true,
+  "interest_threshold": 0.3,
+  "load_similarity_threshold": 0.35,
+  "max_memories_to_fetch": 3,
+  "memory_length_cutoff": 600,
+  "min_pair_length": 40
+}
