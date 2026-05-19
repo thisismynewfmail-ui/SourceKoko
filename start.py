@@ -843,11 +843,12 @@ def api_speech_tts():
         wav = speak_to_wav(text, cfg)
         if wav:
             return Response(wav, mimetype="audio/wav")
-        return jsonify({"error":"TTS generation failed"}), 500
+        return jsonify({"error":"TTS produced no audio"}), 500
     except ImportError as e:
         return jsonify({"error": f"kokoro not installed: {e}"}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback; traceback.print_exc()
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 @app.route("/api/speech/voices", methods=["GET"])
 def api_speech_voices():
@@ -856,6 +857,32 @@ def api_speech_voices():
         return jsonify({"voices": get_tts_voices()})
     except Exception as e:
         return jsonify({"voices": [], "error": str(e)})
+
+@app.route("/api/speech/status", methods=["GET"])
+def api_speech_status():
+    """Report whether the Kokoro pipeline for the current voice is loaded."""
+    try:
+        from speech import kokoro_ready
+        cfg = get_speech_cfg()
+        voice = cfg.get("tts_voice") or "af_sky"
+        return jsonify({"ready": kokoro_ready(voice), "voice": voice})
+    except Exception as e:
+        return jsonify({"ready": False, "error": str(e)})
+
+@app.route("/api/speech/preload", methods=["POST"])
+def api_speech_preload():
+    """Eagerly load the Kokoro pipeline (downloads weights on first call, ~330MB)."""
+    try:
+        from speech import preload_kokoro
+        cfg = get_speech_cfg()
+        voice = cfg.get("tts_voice") or "af_sky"
+        preload_kokoro(voice)
+        return jsonify({"status":"ok","voice":voice})
+    except ImportError as e:
+        return jsonify({"error": f"kokoro not installed: {e}"}), 500
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 @app.route("/api/health",methods=["GET"])
 def api_health():

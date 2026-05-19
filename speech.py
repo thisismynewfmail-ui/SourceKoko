@@ -149,31 +149,41 @@ def _audio_to_numpy(audio):
     audio = np.asarray(audio, dtype="float32")
     return audio
 
+def kokoro_ready(voice="af_sky"):
+    """Return True if the KPipeline for this voice's language is already loaded."""
+    lang_code = _VOICE_LANG.get(voice, "a")
+    return lang_code in _kokoro_pipelines
+
+def preload_kokoro(voice="af_sky"):
+    """Eagerly load the KPipeline for this voice. Raises on failure."""
+    lang_code = _VOICE_LANG.get(voice, "a")
+    _get_kokoro_pipeline(lang_code)
+    return True
+
 def speak_to_wav(text, config):
-    """Generate a 24 kHz mono WAV (bytes) from text using Kokoro. Returns None on failure."""
+    """Generate a 24 kHz mono WAV (bytes) from text using Kokoro.
+
+    Raises on backend failure so the caller can surface a useful error.
+    """
     text = (text or "").strip()
     if not text:
         return None
     voice = (config.get("tts_voice") or "af_sky").strip()
     speed = float(config.get("tts_speed", 1.0) or 1.0)
     lang_code = _VOICE_LANG.get(voice, "a")
-    try:
-        import numpy as np
-        import soundfile as sf
-        pipeline = _get_kokoro_pipeline(lang_code)
-        generator = pipeline(text, voice=voice, speed=speed)
-        chunks = []
-        for _gs, _ps, audio in generator:
-            chunks.append(_audio_to_numpy(audio))
-        if not chunks:
-            return None
-        full = np.concatenate(chunks) if len(chunks) > 1 else chunks[0]
-        buf = io.BytesIO()
-        sf.write(buf, full, 24000, format="WAV", subtype="PCM_16")
-        return buf.getvalue()
-    except Exception as e:
-        print(f"[TTS] Kokoro error: {e}")
+    import numpy as np
+    import soundfile as sf
+    pipeline = _get_kokoro_pipeline(lang_code)
+    generator = pipeline(text, voice=voice, speed=speed)
+    chunks = []
+    for _gs, _ps, audio in generator:
+        chunks.append(_audio_to_numpy(audio))
+    if not chunks:
         return None
+    full = np.concatenate(chunks) if len(chunks) > 1 else chunks[0]
+    buf = io.BytesIO()
+    sf.write(buf, full, 24000, format="WAV", subtype="PCM_16")
+    return buf.getvalue()
 
 # ══════════════════════════════════════════════════════════════════
 # Config

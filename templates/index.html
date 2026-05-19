@@ -329,7 +329,8 @@ body.classic-steam .steam-toggle-desc{color:#5e7050!important;font-family:'Tahom
 <div class="cg"><div class="cgt">▸ Kokoro Voice</div>
 <div class="cr"><span class="cl2">Voice:</span><select class="si" id="spTTSVoice" onchange="spSaveCfg()"><option value="af_sky">Sky (American F)</option></select></div>
 <div class="cr"><span class="cl2">Speed:</span><input type="range" id="spTTSSpeed" min="0.5" max="2.0" step="0.05" value="1.0" oninput="document.getElementById('spTTSSpeedV').textContent=parseFloat(this.value).toFixed(2)+'×'" onchange="spSaveCfg()"><span class="cv2" id="spTTSSpeedV">1.00×</span></div>
-<button class="b" onclick="spTestTTS()" style="margin-top:4px">TEST VOICE</button>
+<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap"><button class="b" id="spTestBtn" onclick="spTestTTS()">TEST VOICE</button><button class="b" id="spPreBtn" onclick="spPreloadModel()">PRELOAD MODEL</button><span id="spModelStat" style="font-size:9px;color:var(--gd);align-self:center;letter-spacing:1px">—</span></div>
+<div id="spStatus" style="font-size:9px;color:var(--gd);margin-top:4px;line-height:1.5;min-height:14px"></div>
 </div>
 <div class="cg"><div class="cgt">▸ Setup</div>
 <div style="font-size:8px;color:var(--gd);line-height:1.6">
@@ -549,7 +550,16 @@ function toggleClassicSteam(){const el=document.getElementById('custSteam');el.c
 document.getElementById('ci').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'});
 document.getElementById('ci').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
 /* ═══ SPEECH — Kokoro TTS ═══ */
-let spCurrentAudio=null;
+let spCurrentAudio=null,spModelReady=false;
+function spSetStatus(msg,kind){const el=document.getElementById('spStatus');if(!el)return;
+const color=kind==='err'?'var(--r)':kind==='ok'?'var(--g)':kind==='warn'?'var(--o)':'var(--gd)';
+el.style.color=color;el.textContent=msg||''}
+function spSetModelStat(){const el=document.getElementById('spModelStat');if(!el)return;
+if(spModelReady){el.textContent='● READY';el.style.color='var(--g)'}
+else{el.textContent='○ NOT LOADED';el.style.color='var(--gd)'}}
+async function spCheckModelStatus(){
+try{const d=await(await fetch('/api/speech/status')).json();spModelReady=!!d.ready;spSetModelStat()}catch{}}
+
 async function spLoadSpeechCfg(){
 try{const d=await(await fetch('/api/speech/config')).json();
 document.getElementById('spTTSAuto')?.classList.toggle('on',!!d.tts_auto_speak);
@@ -560,7 +570,7 @@ try{const vr=await(await fetch('/api/speech/voices')).json();const sel=document.
 if(sel){sel.innerHTML='';const voices=vr.voices||[];const selectedVoice=d.tts_voice||'af_sky';
 voices.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=v.name;if(v.id===selectedVoice)o.selected=true;sel.appendChild(o)});
 if(!voices.length){const o=document.createElement('option');o.value='af_sky';o.textContent='Sky (American F)';sel.appendChild(o)}}}catch{}
-spRefreshPlayButtons();
+spRefreshPlayButtons();spCheckModelStatus();
 }catch(e){console.log('Speech cfg:',e)}}
 
 async function spSaveCfg(){
@@ -568,22 +578,39 @@ const cfg={tts_voice:document.getElementById('spTTSVoice')?.value||'af_sky',
 tts_speed:parseFloat(document.getElementById('spTTSSpeed')?.value)||1.0,
 tts_auto_speak:!!document.getElementById('spTTSAuto')?.classList.contains('on'),
 show_playback_button:!!document.getElementById('spShowBtn')?.classList.contains('on')};
-await J('/api/speech/config',cfg)}
+await J('/api/speech/config',cfg);spCheckModelStatus()}
+
+async function spPreloadModel(){
+const btn=document.getElementById('spPreBtn');if(!btn||btn.disabled)return;
+const old=btn.textContent;btn.disabled=true;btn.textContent='LOADING...';
+spSetStatus('Loading Kokoro pipeline (first run downloads ~330MB from HuggingFace)...','warn');
+try{const r=await fetch('/api/speech/preload',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+const d=await r.json().catch(()=>({}));
+if(r.ok){spModelReady=true;spSetModelStat();spSetStatus('Model loaded.','ok')}
+else{spSetStatus('Load failed: '+(d.error||r.statusText),'err')}}
+catch(e){spSetStatus('Load failed: '+e.message,'err')}
+finally{btn.disabled=false;btn.textContent=old}}
 
 async function spTestTTS(){
-const btn=event?.target;if(btn){btn.disabled=true;const old=btn.textContent;btn.textContent='GENERATING...';
-try{await spSpeakText('This is a test of the Kokoro text to speech voice.');}finally{btn.disabled=false;btn.textContent=old}}
-else{spSpeakText('This is a test of the Kokoro text to speech voice.')}}
+const btn=document.getElementById('spTestBtn');if(!btn||btn.disabled)return;
+const old=btn.textContent;btn.disabled=true;btn.textContent='GENERATING...';
+const slowNotice=setTimeout(()=>{if(!spModelReady)spSetStatus('Downloading Kokoro weights on first run (~330MB)... please wait.','warn')},2000);
+try{await spSpeakText('This is a test of the Kokoro text to speech voice.',true)}
+finally{clearTimeout(slowNotice);btn.disabled=false;btn.textContent=old}}
 
-async function spSpeakText(text){
+async function spSpeakText(text,fromTest){
 if(!text||text.length<1)return;
 try{if(spCurrentAudio){spCurrentAudio.pause();spCurrentAudio=null}
 const r=await fetch('/api/speech/tts',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({text})});
-if(!r.ok){const e=await r.json().catch(()=>({}));showMemBadge('TTS ERR','skip');console.warn('TTS:',e);return}
+if(!r.ok){let err='HTTP '+r.status;try{const e=await r.json();if(e.error)err=e.error}catch{}
+showMemBadge('TTS ERR','skip');spSetStatus('TTS error: '+err,'err');console.warn('TTS:',err);return}
+spModelReady=true;spSetModelStat();
+if(fromTest)spSetStatus('Playing test audio.','ok');
 const blob=await r.blob();const url=URL.createObjectURL(blob);
-const a=new Audio(url);spCurrentAudio=a;a.play();a.onended=()=>{URL.revokeObjectURL(url);if(spCurrentAudio===a)spCurrentAudio=null}
-}catch(e){console.warn('TTS error:',e)}}
+const a=new Audio(url);spCurrentAudio=a;a.play().catch(e=>spSetStatus('Audio play blocked: '+e.message,'err'));
+a.onended=()=>{URL.revokeObjectURL(url);if(spCurrentAudio===a)spCurrentAudio=null}
+}catch(e){spSetStatus('TTS error: '+e.message,'err');console.warn('TTS error:',e)}}
 
 function spOnAssistantDone(text){
 if(!text)return;
