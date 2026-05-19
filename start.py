@@ -819,11 +819,12 @@ def api_speech_config():
         return jsonify(get_speech_cfg())
     data = request.json
     cfg = get_speech_cfg()
-    for k in ("tts_enabled","tts_auto_speak"):
+    for k in ("tts_auto_speak","show_playback_button"):
         if k in data: cfg[k] = bool(data[k])
     if "tts_voice" in data: cfg["tts_voice"] = str(data["tts_voice"])
-    for k in ("tts_rate","tts_volume"):
-        if k in data: cfg[k] = int(data[k])
+    if "tts_speed" in data:
+        try: cfg["tts_speed"] = float(data["tts_speed"])
+        except: pass
     _speech_cfg = cfg
     try:
         from speech import save_speech_config
@@ -844,7 +845,7 @@ def api_speech_tts():
             return Response(wav, mimetype="audio/wav")
         return jsonify({"error":"TTS generation failed"}), 500
     except ImportError as e:
-        return jsonify({"error": f"pyttsx3 not installed: {e}"}), 500
+        return jsonify({"error": f"kokoro not installed: {e}"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

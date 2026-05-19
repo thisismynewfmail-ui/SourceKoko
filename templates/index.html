@@ -318,21 +318,25 @@ body.classic-steam .steam-toggle-desc{color:#5e7050!important;font-family:'Tahom
 <div class="cg"><div class="cgt" onclick="togCG(this)">▸ Penalties <span class="arr">▼</span></div><div class="cg-b" id="ps-penalties"></div></div>
 <div class="cg"><div class="cgt" onclick="togCG(this)">▸ Generation <span class="arr">▼</span></div><div class="cg-b" id="ps-generation"></div></div>
 <div class="cg"><div class="cgt" onclick="togCG(this)">▸ Runtime <span class="arr">▼</span></div><div class="cg-b" id="ps-runtime"></div></div></div></div>
-<!-- SPEECH TAB — TTS Only -->
+<!-- SPEECH TAB — Kokoro TTS -->
 <div class="tp pi" id="t-speech"><div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
-<div class="cg"><div class="cgt">▸ Voice Output (TTS)</div>
-<div class="tr2"><span class="trl">Auto-speak:</span><div class="ts2" id="spTTSAuto" onclick="this.classList.toggle('on')"></div></div>
-<div class="cr"><span class="cl2">Voice:</span><select class="si" id="spTTSVoice"><option value="">Loading...</option></select></div>
-<div class="cr"><span class="cl2">Rate:</span><input type="range" id="spTTSRate" min="80" max="300" value="170" oninput="document.getElementById('spTTSRateV').textContent=this.value"><span class="cv2" id="spTTSRateV">170</span></div>
-<div class="cr"><span class="cl2">Volume:</span><input type="range" id="spTTSVol" min="0" max="100" value="100" oninput="document.getElementById('spTTSVolV').textContent=this.value+'%'"><span class="cv2" id="spTTSVolV">100%</span></div>
+<div class="cg"><div class="cgt">▸ Voice Feedback</div>
+<div class="tr2"><span class="trl">Auto Voice Playback:</span><div class="ts2" id="spTTSAuto" onclick="this.classList.toggle('on');spSaveCfg()"></div></div>
+<div style="font-size:8px;color:var(--gd);line-height:1.5;margin-top:2px">Automatically speak each assistant reply aloud. Off by default.</div>
+<div class="tr2" style="margin-top:6px"><span class="trl">Show Playback Button:</span><div class="ts2" id="spShowBtn" onclick="this.classList.toggle('on');spSaveCfg();spRefreshPlayButtons()"></div></div>
+<div style="font-size:8px;color:var(--gd);line-height:1.5;margin-top:2px">Display a 🔊 playback button on each assistant reply. Hidden by default.</div>
+</div>
+<div class="cg"><div class="cgt">▸ Kokoro Voice</div>
+<div class="cr"><span class="cl2">Voice:</span><select class="si" id="spTTSVoice" onchange="spSaveCfg()"><option value="af_sky">Sky (American F)</option></select></div>
+<div class="cr"><span class="cl2">Speed:</span><input type="range" id="spTTSSpeed" min="0.5" max="2.0" step="0.05" value="1.0" oninput="document.getElementById('spTTSSpeedV').textContent=parseFloat(this.value).toFixed(2)+'×'" onchange="spSaveCfg()"><span class="cv2" id="spTTSSpeedV">1.00×</span></div>
 <button class="b" onclick="spTestTTS()" style="margin-top:4px">TEST VOICE</button>
 </div>
-<div style="margin-top:4px"><button class="b p" onclick="spSaveCfg()">SAVE SPEECH CONFIG</button></div>
-<div class="cg" style="margin-top:5px"><div class="cgt">▸ Setup</div>
+<div class="cg"><div class="cgt">▸ Setup</div>
 <div style="font-size:8px;color:var(--gd);line-height:1.6">
-<b style="color:var(--g)">TTS Requirements:</b><br>
-pip install pyttsx3<br>
-Uses Windows SAPI voices. Install additional voice packs from Windows Settings &rarr; Time &amp; Language &rarr; Speech.
+<b style="color:var(--g)">Kokoro TTS (Kokoro-82M):</b><br>
+pip install kokoro soundfile numpy<br>
+Voices: <a href="https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md" style="color:var(--g)" target="_blank">huggingface.co/hexgrad/Kokoro-82M</a><br>
+First call downloads the model from HuggingFace (~330MB).
 </div></div>
 </div></div>
 <div class="tp pi" id="t-custom"><div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
@@ -435,14 +439,14 @@ pe.innerHTML=h||'--';
 /* Active chat */
 async function loadActive(){try{const r=await fetch('/api/active'),d=await r.json();knownVer=d.version;activeId=d.active_id;renderChat(d.chat.messages);document.getElementById('curM').textContent=(d.chat.model||'NO MODEL').toUpperCase();document.getElementById('activeInfo').textContent=`"${d.chat.title||'?'}" · ${d.chat.messages?.length||0} msgs`;updSidebar()}catch{}}
 function renderChat(msgs){const cm=document.getElementById('msgs');cm.innerHTML='';if(!msgs||!msgs.length){cm.innerHTML='<div class="cm sy"><div class="mc">Select a model and begin.</div></div>';return}
-msgs.forEach((m,i)=>{if(m.role==='user'){const div=addM('u',m.content);div.dataset.msgIdx=i}else if(m.role==='assistant'){const div=addM('a',stD(m.content));div.dataset.msgIdx=i;if(m.thinking&&tv()){const ti=document.createElement('div');ti.className='ti2 col';ti.innerHTML='<span class="ar2">▶</span> REASONING';ti.onclick=function(){this.classList.toggle('col');this.nextElementSibling.classList.toggle('hid');const ar=this.querySelector('.ar2');ar.textContent=this.classList.contains('col')?'▶':'▼'};const tb=document.createElement('div');tb.className='thb2 hid';tb.textContent=m.thinking;div.insertBefore(tb,div.querySelector('.mc'));div.insertBefore(ti,tb)}}});scrollChat();updSidebar()}
+msgs.forEach((m,i)=>{if(m.role==='user'){const div=addM('u',m.content);div.dataset.msgIdx=i}else if(m.role==='assistant'){const div=addM('a',stD(m.content));div.dataset.msgIdx=i;if(m.thinking&&tv()){const ti=document.createElement('div');ti.className='ti2 col';ti.innerHTML='<span class="ar2">▶</span> REASONING';ti.onclick=function(){this.classList.toggle('col');this.nextElementSibling.classList.toggle('hid');const ar=this.querySelector('.ar2');ar.textContent=this.classList.contains('col')?'▶':'▼'};const tb=document.createElement('div');tb.className='thb2 hid';tb.textContent=m.thinking;div.insertBefore(tb,div.querySelector('.mc'));div.insertBefore(ti,tb)}}});spRefreshPlayButtons();scrollChat();updSidebar()}
 async function pollSync(){try{const r=await fetch('/api/active/poll'),d=await r.json();if((d.version!==knownVer||d.active_id!==activeId)&&!busy){knownVer=d.version;activeId=d.active_id;await loadActive()}}catch{}}
 setInterval(pollSync,2000);
 async function unsend(){await J('/api/active/unsend');await loadActive();showMemBadge('UNSENT','skip')}
 function stD(t){return t?t.replace(/<think>[\s\S]*?<\/think>\s*/g,'').trim():t}
 
 /* Chat */
-function addM(role,txt){const c=document.getElementById('msgs');const d=document.createElement('div');d.className='cm '+(role==='u'?'u':'a');const now=new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});const rl=role==='u'?'USER':llmName.toUpperCase();const idx=c.querySelectorAll('.cm.u,.cm.a').length;d.dataset.msgIdx=idx;d.innerHTML=`<div class="msg-actions"><button class="msg-edit" onclick="editMsg(this)" title="Edit">✎</button><button class="msg-edit" onclick="regenMsg(this)" title="Regenerate">⟳</button></div><div class="mhr"><span class="mr">${rl}</span><span class="mts gs2${ss()?' vis':''}">${now}</span></div><div class="mc"></div>`;d.querySelector('.mc').textContent=txt;c.appendChild(d);scrollChat();return d}
+function addM(role,txt){const c=document.getElementById('msgs');const d=document.createElement('div');d.className='cm '+(role==='u'?'u':'a');const now=new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});const rl=role==='u'?'USER':llmName.toUpperCase();const idx=c.querySelectorAll('.cm.u,.cm.a').length;d.dataset.msgIdx=idx;d.innerHTML=`<div class="msg-actions"><button class="msg-edit" onclick="editMsg(this)" title="Edit">✎</button><button class="msg-edit" onclick="regenMsg(this)" title="Regenerate">⟳</button></div><div class="mhr"><span class="mr">${rl}</span><span class="mts gs2${ss()?' vis':''}">${now}</span></div><div class="mc"></div>`;d.querySelector('.mc').textContent=txt;c.appendChild(d);if(role==='a')spAddPlayButton(d);scrollChat();return d}
 function sM(t){const c=document.getElementById('msgs');const d=document.createElement('div');d.className='cm sy';d.innerHTML=`<div class="mc">${esc(t)}</div>`;c.appendChild(d);scrollChat()}
 function stopGen(){if(abortCtrl){abortCtrl.abort();abortCtrl=null}}
 function resetBusy(){busy=0;abortCtrl=null;document.getElementById('sBtn').textContent='SEND';document.getElementById('bStop').style.display='none';
@@ -544,42 +548,64 @@ function toggleClassicSteam(){const el=document.getElementById('custSteam');el.c
 
 document.getElementById('ci').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'});
 document.getElementById('ci').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
-/* ═══ SPEECH — TTS Only ═══ */
+/* ═══ SPEECH — Kokoro TTS ═══ */
+let spCurrentAudio=null;
 async function spLoadSpeechCfg(){
 try{const d=await(await fetch('/api/speech/config')).json();
 document.getElementById('spTTSAuto')?.classList.toggle('on',!!d.tts_auto_speak);
-const rv=document.getElementById('spTTSRateV');if(rv)rv.textContent=d.tts_rate||170;
-const vv=document.getElementById('spTTSVolV');if(vv)vv.textContent=(d.tts_volume||100)+'%';
-if(d.tts_rate)document.getElementById('spTTSRate').value=d.tts_rate;
-if(d.tts_volume!==undefined)document.getElementById('spTTSVol').value=d.tts_volume;
+document.getElementById('spShowBtn')?.classList.toggle('on',!!d.show_playback_button);
+const sp=document.getElementById('spTTSSpeed');const spv=document.getElementById('spTTSSpeedV');
+const speed=parseFloat(d.tts_speed)||1.0;if(sp)sp.value=speed;if(spv)spv.textContent=speed.toFixed(2)+'×';
 try{const vr=await(await fetch('/api/speech/voices')).json();const sel=document.getElementById('spTTSVoice');
-if(sel){sel.innerHTML='<option value="">System Default</option>';
-(vr.voices||[]).forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=v.name;if(v.id===d.tts_voice)o.selected=true;sel.appendChild(o)})}}catch{}
+if(sel){sel.innerHTML='';const voices=vr.voices||[];const selectedVoice=d.tts_voice||'af_sky';
+voices.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=v.name;if(v.id===selectedVoice)o.selected=true;sel.appendChild(o)});
+if(!voices.length){const o=document.createElement('option');o.value='af_sky';o.textContent='Sky (American F)';sel.appendChild(o)}}}catch{}
+spRefreshPlayButtons();
 }catch(e){console.log('Speech cfg:',e)}}
 
 async function spSaveCfg(){
-const cfg={tts_voice:document.getElementById('spTTSVoice')?.value||'',
-tts_rate:parseInt(document.getElementById('spTTSRate')?.value)||170,
-tts_volume:parseInt(document.getElementById('spTTSVol')?.value)||100,
-tts_auto_speak:!!document.getElementById('spTTSAuto')?.classList.contains('on')};
-await J('/api/speech/config',cfg);showMemBadge('SPEECH SAVED','inj')}
+const cfg={tts_voice:document.getElementById('spTTSVoice')?.value||'af_sky',
+tts_speed:parseFloat(document.getElementById('spTTSSpeed')?.value)||1.0,
+tts_auto_speak:!!document.getElementById('spTTSAuto')?.classList.contains('on'),
+show_playback_button:!!document.getElementById('spShowBtn')?.classList.contains('on')};
+await J('/api/speech/config',cfg)}
 
 async function spTestTTS(){
-try{const r=await fetch('/api/speech/tts',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({text:'Testing text to speech output.'})});
-if(r.ok){const blob=await r.blob();const url=URL.createObjectURL(blob);
-const a=new Audio(url);a.play();a.onended=()=>URL.revokeObjectURL(url)}}catch{}}
+const btn=event?.target;if(btn){btn.disabled=true;const old=btn.textContent;btn.textContent='GENERATING...';
+try{await spSpeakText('This is a test of the Kokoro text to speech voice.');}finally{btn.disabled=false;btn.textContent=old}}
+else{spSpeakText('This is a test of the Kokoro text to speech voice.')}}
 
-async function spSpeak(text){
-if(!text||text.length<2)return;
-try{const r=await fetch('/api/speech/tts',{method:'POST',headers:{'Content-Type':'application/json'},
+async function spSpeakText(text){
+if(!text||text.length<1)return;
+try{if(spCurrentAudio){spCurrentAudio.pause();spCurrentAudio=null}
+const r=await fetch('/api/speech/tts',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({text})});
-if(r.ok){const blob=await r.blob();const url=URL.createObjectURL(blob);
-const a=new Audio(url);a.play();a.onended=()=>URL.revokeObjectURL(url)}}catch{}}
+if(!r.ok){const e=await r.json().catch(()=>({}));showMemBadge('TTS ERR','skip');console.warn('TTS:',e);return}
+const blob=await r.blob();const url=URL.createObjectURL(blob);
+const a=new Audio(url);spCurrentAudio=a;a.play();a.onended=()=>{URL.revokeObjectURL(url);if(spCurrentAudio===a)spCurrentAudio=null}
+}catch(e){console.warn('TTS error:',e)}}
 
 function spOnAssistantDone(text){
 if(!text)return;
-if(document.getElementById('spTTSAuto')?.classList.contains('on'))spSpeak(text)}
+if(document.getElementById('spTTSAuto')?.classList.contains('on'))spSpeakText(text)}
+
+function spShouldShowBtn(){return!!document.getElementById('spShowBtn')?.classList.contains('on')}
+
+function spAddPlayButton(msgDiv){
+if(!msgDiv||!msgDiv.classList.contains('a'))return;
+if(msgDiv.querySelector('.sp-play'))return;
+const actions=msgDiv.querySelector('.msg-actions');if(!actions)return;
+const b=document.createElement('button');b.className='msg-edit sp-play';b.title='Play reply';b.textContent='🔊';
+b.onclick=(e)=>{e.stopPropagation();const mc=msgDiv.querySelector('.mc');if(mc)spSpeakText(mc.textContent||'')};
+if(!spShouldShowBtn())b.style.display='none';
+actions.insertBefore(b,actions.firstChild)}
+
+function spRefreshPlayButtons(){
+const show=spShouldShowBtn();
+document.querySelectorAll('.cm.a').forEach(m=>{
+let b=m.querySelector('.sp-play');
+if(!b){spAddPlayButton(m);b=m.querySelector('.sp-play')}
+if(b)b.style.display=show?'':'none'})}
 
 chkH();loadCfg();loadModels();loadActive();loadCust();spLoadSpeechCfg();setInterval(chkH,15000);
 </script></body></html>
